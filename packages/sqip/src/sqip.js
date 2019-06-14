@@ -21,6 +21,8 @@ import fs from 'fs-extra'
 import glob from 'fast-glob'
 import sizeOf from 'image-size'
 import Vibrant from 'node-vibrant'
+import termimg from 'term-img'
+import Table from 'cli-table3'
 
 const debug = Debug('sqip')
 
@@ -174,11 +176,54 @@ https://github.com/micromatch/micromatch#matching-features`
 
       debug(`Writing ${outputPath}`)
       await fs.writeFile(outputPath, result.svg)
+      console.log(`Saved at: ${outputPath}\n`)
     }
 
-    if (config.print) {
-      console.log(result.svg)
-    }
+    // Generate preview
+    // termimg(outputPath)
+
+    // Actual result
+    console.log(`${result.svg}\n`)
+
+    // Metadata
+    console.log('Extracted metadata:\n')
+    var table = new Table({
+      chars: {
+        top: '',
+        'top-mid': '',
+        'top-left': '',
+        'top-right': '',
+        bottom: '',
+        'bottom-mid': '',
+        'bottom-left': '',
+        'bottom-right': '',
+        left: '',
+        'left-mid': '',
+        mid: '',
+        'mid-mid': '',
+        right: '',
+        'right-mid': '',
+        middle: ' '
+      },
+      style: { 'padding-left': 0, 'padding-right': 0 }
+    })
+
+    Object.keys(result.metadata).forEach(name => {
+      switch (name) {
+        case 'palette':
+          Object.keys(result.metadata.palette).forEach(colorName => {
+            table.push([
+              `${colorName}`,
+              result.metadata.palette[colorName].getHex()
+            ])
+          })
+          break
+        default:
+          table.push([name, result.metadata[name]])
+      }
+    })
+
+    console.log(table.toString())
 
     results.push(result)
   }
